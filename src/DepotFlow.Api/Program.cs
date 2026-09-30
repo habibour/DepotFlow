@@ -42,3 +42,5 @@ app.MapControllers();
 app.MapHealthChecks("/health").AllowAnonymous();
 
 app.Run();
+
+public partial class Program;   // lets the integration tests start the app with WebApplicationFactory<Program>

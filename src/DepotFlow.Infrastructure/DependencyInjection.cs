@@ -14,10 +14,13 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
-        var connectionString = configuration.GetConnectionString("Default")
-            ?? throw new InvalidOperationException("Connection string 'Default' is not configured.");
-
-        services.AddDbContext<DepotFlowDbContext>(options => options.UseSqlServer(connectionString));
+        // Read lazily, when the context is first created, so configuration added later (for example by tests) is honoured.
+        services.AddDbContext<DepotFlowDbContext>((serviceProvider, options) =>
+        {
+            var connectionString = serviceProvider.GetRequiredService<IConfiguration>().GetConnectionString("Default")
+                ?? throw new InvalidOperationException("Connection string 'Default' is not configured.");
+            options.UseSqlServer(connectionString);
+        });
         services.AddScoped<IDepotFlowDbContext>(sp => sp.GetRequiredService<DepotFlowDbContext>());
 
         services.AddIdentityCore<ApplicationUser>()
