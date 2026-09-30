@@ -1,5 +1,6 @@
 using DepotFlow.Api.Auth;
 using DepotFlow.Api.ErrorHandling;
+using System.Text.Json.Serialization;
 using DepotFlow.Application;
 using DepotFlow.Api.OpenApi;
 using DepotFlow.Infrastructure;
@@ -7,7 +8,10 @@ using DepotFlow.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));   // "InYard", not 1
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUser, CurrentUser>();
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddJwtAuthentication();

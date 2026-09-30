@@ -1,3 +1,5 @@
+using DepotFlow.Application.Containers;
+using DepotFlow.Application.Gate;
 using DepotFlow.Application.ShippingLines;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,6 +17,11 @@ public static class DependencyInjection
         services.AddScoped<GetShippingLineUseCase>();
         services.AddScoped<CreateShippingLineUseCase>();
         services.AddScoped<UpdateShippingLineUseCase>();
+
+        services.AddScoped<GateInUseCase>();
+        services.AddScoped<GateOutUseCase>();
+        services.AddScoped<GetContainerUseCase>();
+        services.AddScoped<SearchContainersUseCase>();
 
         return services;
     }

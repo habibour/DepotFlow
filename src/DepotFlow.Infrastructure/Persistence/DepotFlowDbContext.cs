@@ -5,6 +5,7 @@ using DepotFlow.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace DepotFlow.Infrastructure.Persistence;
 
@@ -27,6 +28,14 @@ public class DepotFlowDbContext(DbContextOptions<DepotFlowDbContext> options)
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(DepotFlowDbContext).Assembly);
     }
 
+    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+    {
+        // SQL Server hands back datetime2 with Kind=Unspecified, which serialises without a "Z".
+        // Every date in this system is UTC, so mark them as UTC when reading.
+        configurationBuilder.Properties<DateTime>().HaveConversion<UtcDateTimeConverter>();
+        configurationBuilder.Properties<DateTime?>().HaveConversion<NullableUtcDateTimeConverter>();
+    }
+
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         try
@@ -39,3 +48,11 @@ public class DepotFlowDbContext(DbContextOptions<DepotFlowDbContext> options)
         }
     }
 }
+
+internal sealed class UtcDateTimeConverter() : ValueConverter<DateTime, DateTime>(
+    v => v,
+    v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
+
+internal sealed class NullableUtcDateTimeConverter() : ValueConverter<DateTime?, DateTime?>(
+    v => v,
+    v => v.HasValue ? DateTime.SpecifyKind(v.Value, DateTimeKind.Utc) : v);
