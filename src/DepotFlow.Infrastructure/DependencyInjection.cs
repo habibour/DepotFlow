@@ -18,6 +18,7 @@ public static class DependencyInjection
             ?? throw new InvalidOperationException("Connection string 'Default' is not configured.");
 
         services.AddDbContext<DepotFlowDbContext>(options => options.UseSqlServer(connectionString));
+        services.AddScoped<IDepotFlowDbContext>(sp => sp.GetRequiredService<DepotFlowDbContext>());
 
         services.AddIdentityCore<ApplicationUser>()
             .AddRoles<IdentityRole>()
