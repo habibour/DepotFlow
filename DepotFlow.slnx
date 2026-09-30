@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/DepotFlow.Api/DepotFlow.Api.csproj" />
+    <Project Path="src/DepotFlow.Application/DepotFlow.Application.csproj" />
+    <Project Path="src/DepotFlow.Domain/DepotFlow.Domain.csproj" />
+    <Project Path="src/DepotFlow.Infrastructure/DepotFlow.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/DepotFlow.Api.Tests/DepotFlow.Api.Tests.csproj" />
+    <Project Path="tests/DepotFlow.Domain.Tests/DepotFlow.Domain.Tests.csproj" />
+  </Folder>
+</Solution>
