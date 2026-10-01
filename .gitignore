@@ -489,3 +489,4 @@ CLAUDE.md
 docs/*
 !docs/benchmarks.md
 !docs/img/
+!docs/walkthrough.mp4

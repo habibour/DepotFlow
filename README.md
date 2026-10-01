@@ -16,7 +16,13 @@ A container depot is a big yard where shipping containers wait between a ship an
 | **The yard: 1,200 containers in stacks** | **Reports on 1.5 million visits** |
 | ![Yard](docs/img/06-yard.png) | ![Reports](docs/img/07-reports.png) |
 
-The yard and report screenshots come from the generated data set described under [Performance](#performance); the gate and invoice screenshots come from a real run through the UI. A walkthrough video has not been recorded.
+The yard and report screenshots come from the generated data set described under [Performance](#performance); the gate and invoice screenshots come from a real run through the UI.
+
+### Walkthrough video
+
+A 2-minute tour of every feature: login and roles, gate-in with validation, duplicate refusal, yard, gate-out with billing, payment, audit log, and the reports on 1.5 million visits. Click the preview to open the full video ([`docs/walkthrough.mp4`](docs/walkthrough.mp4)).
+
+[![DepotFlow walkthrough](docs/img/walkthrough-preview.gif)](docs/walkthrough.mp4)
 
 ## Key features
 
@@ -191,7 +197,6 @@ The full contract is in Swagger at <http://localhost:5080/swagger>.
 - **The web app covers the daily work only.** Gate, invoices, yard and reports are there; relocation, tariff management and the audit log are API-only. The layout is meant for laptop width, not phones.
 - **The login token is kept in `sessionStorage`** for simplicity. A production system would use an httpOnly cookie so scripts on the page cannot read it.
 - **No lint step** for the web app (ESLint is not configured; the TypeScript compiler runs in strict mode).
-- **No walkthrough video** was recorded.
 - **Bulk-loaded data has no audit rows or invoice lines** (it bypasses the audit interceptor by design).
 - **Performance numbers** come from one laptop with a warm cache and one client; write performance and concurrent load were not benchmarked.
 
