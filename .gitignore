@@ -484,6 +484,8 @@ $RECYCLE.BIN/
 # Secrets and local config
 .env
 
-# Personal workspace files, not pushed
+# Personal workspace files, not pushed (PRD, specs, plans). Only the benchmark write-up and its images are public.
 CLAUDE.md
-docs/
+docs/*
+!docs/benchmarks.md
+!docs/img/
