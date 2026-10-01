@@ -1,0 +1,144 @@
+<h1>Gate operations</h1>
+
+@if (loadError(); as e) {
+  <div class="alert error" role="alert">{{ e.message }}</div>
+}
+
+<div class="grid-2">
+  <section class="card" aria-labelledby="gate-in-title">
+    <h2 id="gate-in-title">Gate in</h2>
+
+    @if (gateInResult(); as visit) {
+      <div class="alert success" role="status">
+        Gated in <strong>{{ visit.containerNumber }}</strong> ({{ visit.sizeFeet }} ft, {{ visit.shippingLine.code }}).
+        Slot <strong>{{ visit.yardSlot?.code }}</strong>.
+      </div>
+    }
+    @if (gateInError(); as e) {
+      <div class="alert error" role="alert">
+        {{ e.message }}
+        @if (e.fields.length) {
+          <ul>@for (f of e.fields; track f) { <li>{{ f }}</li> }</ul>
+        }
+        @if (e.traceId) { <div><small>Reference: {{ e.traceId }}</small></div> }
+      </div>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="gateIn()" novalidate>
+      <div class="field">
+        <label for="containerNumber">Container number</label>
+        <input id="containerNumber" formControlName="containerNumber" placeholder="CSQU3054383" autocomplete="off" spellcheck="false"
+               [class.invalid]="form.controls.containerNumber.dirty && form.controls.containerNumber.invalid" />
+        @if (form.controls.containerNumber.dirty || form.controls.containerNumber.touched) {
+          @if (form.controls.containerNumber.errors?.['container']; as reason) {
+            <div class="hint">{{ reason }}</div>
+          }
+        }
+      </div>
+
+      <div class="row">
+        <div class="field" style="flex: 1">
+          <label for="sizeFeet">Size</label>
+          <select id="sizeFeet" formControlName="sizeFeet">
+            <option [ngValue]="20">20 ft</option>
+            <option [ngValue]="40">40 ft</option>
+          </select>
+        </div>
+        <div class="field" style="flex: 2">
+          <label for="shippingLineId">Shipping line</label>
+          <select id="shippingLineId" formControlName="shippingLineId">
+            <option [ngValue]="0" disabled>Choose...</option>
+            @for (line of lines(); track line.id) {
+              <option [ngValue]="line.id">{{ line.code }} - {{ line.name }}</option>
+            }
+          </select>
+          @if (form.controls.shippingLineId.touched && form.controls.shippingLineId.invalid) {
+            <div class="hint">Choose a shipping line.</div>
+          }
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="field" style="flex: 1">
+          <label for="truckNumber">Truck number</label>
+          <input id="truckNumber" formControlName="truckNumber" maxlength="30" />
+          @if (form.controls.truckNumber.touched && form.controls.truckNumber.invalid) { <div class="hint">Required (30 characters at most).</div> }
+        </div>
+        <div class="field" style="flex: 1">
+          <label for="sealNumber">Seal number</label>
+          <input id="sealNumber" formControlName="sealNumber" maxlength="30" />
+          @if (form.controls.sealNumber.touched && form.controls.sealNumber.invalid) { <div class="hint">Required (30 characters at most).</div> }
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="damageNotes">Damage notes (optional)</label>
+        <textarea id="damageNotes" formControlName="damageNotes" rows="2" maxlength="500"></textarea>
+      </div>
+
+      <button type="submit" class="primary" [disabled]="gateInBusy()">{{ gateInBusy() ? 'Gating in...' : 'Gate in' }}</button>
+    </form>
+  </section>
+
+  <section class="card" aria-labelledby="yard-title">
+    <h2 id="yard-title">In the yard <span class="muted">({{ inYardTotal() }})</span></h2>
+
+    @if (released(); as visit) {
+      <div class="alert success" role="status">
+        Released <strong>{{ visit.containerNumber }}</strong> after {{ visit.dwellDays }} day(s).
+        @if (visit.invoice; as invoice) {
+          Invoice <strong>{{ invoice.invoiceNumber }}</strong>: {{ formatMoney(invoice.total, invoice.currency) }}
+          <span class="badge" [class.ok]="invoice.status === 'Paid'" [class.warn]="invoice.status === 'Issued'">{{ invoice.status }}</span>
+        }
+      </div>
+    }
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Container</th><th>Line</th><th>Slot</th><th>Gate-in</th><th class="num">Days</th><th></th></tr>
+        </thead>
+        <tbody>
+          @for (visit of inYard(); track visit.id) {
+            <tr>
+              <td>{{ visit.containerNumber }} <span class="muted">{{ visit.sizeFeet }} ft</span></td>
+              <td>{{ visit.shippingLineCode }}</td>
+              <td>{{ visit.slotCode ?? '-' }}</td>
+              <td>{{ formatDateTime(visit.gateInAtUtc) }}</td>
+              <td class="num">{{ visit.dwellDays }}</td>
+              <td class="right">
+                <button type="button" (click)="startGateOut(visit)" [attr.aria-expanded]="gatingOutId() === visit.id">Gate out</button>
+              </td>
+            </tr>
+            @if (gatingOutId() === visit.id) {
+              <tr>
+                <td colspan="6">
+                  <form [formGroup]="outForm" (ngSubmit)="confirmGateOut(visit)" novalidate class="out-form">
+                    @if (gateOutError(); as e) {
+                      <div class="alert error" role="alert">{{ e.message }}</div>
+                    }
+                    <div class="row">
+                      <div class="field" style="flex: 1">
+                        <label [attr.for]="'out-truck-' + visit.id">Truck number</label>
+                        <input [id]="'out-truck-' + visit.id" formControlName="truckNumber" maxlength="30" />
+                      </div>
+                      <div class="field" style="flex: 2">
+                        <label [attr.for]="'out-notes-' + visit.id">Damage notes (optional)</label>
+                        <input [id]="'out-notes-' + visit.id" formControlName="damageNotes" maxlength="500" />
+                      </div>
+                      <div class="field">
+                        <button type="submit" class="primary" [disabled]="gateOutBusy()">{{ gateOutBusy() ? 'Releasing...' : 'Confirm gate out' }}</button>
+                      </div>
+                    </div>
+                  </form>
+                </td>
+              </tr>
+            }
+          } @empty {
+            <tr><td colspan="6" class="muted">No containers in the yard.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>

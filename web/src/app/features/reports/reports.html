@@ -1,0 +1,112 @@
+<h1>Reports</h1>
+
+<form class="card row" (ngSubmit)="run()">
+  <div class="field">
+    <label for="from">From</label>
+    <input id="from" name="from" type="date" [(ngModel)]="from" />
+  </div>
+  <div class="field">
+    <label for="to">To</label>
+    <input id="to" name="to" type="date" [(ngModel)]="to" />
+  </div>
+  <div class="field"><button type="submit" class="primary" [disabled]="busy()">{{ busy() ? 'Loading...' : 'Run reports' }}</button></div>
+  <span class="spacer"></span>
+  <span class="muted">Dates are local (Dhaka) dates, both included.</span>
+</form>
+
+@if (error(); as e) {
+  <div class="alert error" role="alert">{{ e.message }}</div>
+}
+
+<div class="grid-2">
+  @if (canRevenue && revenue(); as r) {
+    <section class="card">
+      <h2>Revenue by shipping line</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Line</th><th class="num">Invoices</th><th class="num">Billed</th><th class="num">Paid</th><th class="num">Outstanding</th></tr></thead>
+          <tbody>
+            @for (row of r.rows; track row.shippingLineId) {
+              <tr>
+                <td>{{ row.code }}</td><td class="num">{{ row.invoices | number }}</td>
+                <td class="num">{{ formatMoney(row.totalBilled, r.currency) }}</td>
+                <td class="num">{{ formatMoney(row.totalPaid, r.currency) }}</td>
+                <td class="num">{{ formatMoney(row.outstanding, r.currency) }}</td>
+              </tr>
+            } @empty {
+              <tr><td colspan="5" class="muted">No invoices were issued in this period.</td></tr>
+            }
+          </tbody>
+          <tfoot>
+            <tr>
+              <th>Total</th><th class="num">{{ r.total.invoices | number }}</th>
+              <th class="num">{{ formatMoney(r.total.totalBilled, r.currency) }}</th>
+              <th class="num">{{ formatMoney(r.total.totalPaid, r.currency) }}</th>
+              <th class="num">{{ formatMoney(r.total.outstanding, r.currency) }}</th>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </section>
+  }
+
+  @if (canDwell && dwell(); as r) {
+    <section class="card">
+      <h2>Average dwell time</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Line</th><th class="num">Released</th><th class="num">Average days</th><th class="num">Median</th><th class="num">Max</th></tr></thead>
+          <tbody>
+            @for (row of r.rows; track row.shippingLineId) {
+              <tr>
+                <td>{{ row.code }}</td><td class="num">{{ row.releasedVisits | number }}</td>
+                <td class="num">{{ row.avgDwellDays }}</td><td class="num">{{ row.medianDwellDays }}</td><td class="num">{{ row.maxDwellDays }}</td>
+              </tr>
+            } @empty {
+              <tr><td colspan="5" class="muted">No containers were released in this period.</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  }
+
+  @if (canYard && yard(); as r) {
+    <section class="card">
+      <h2>Yard occupancy</h2>
+      <table>
+        <thead><tr><th>Block</th><th class="num">Slots</th><th class="num">Occupied</th><th class="num">TEU</th><th class="num">Full</th></tr></thead>
+        <tbody>
+          @for (row of r.rows; track row.block) {
+            <tr><td>{{ row.block }}</td><td class="num">{{ row.totalSlots }}</td><td class="num">{{ row.occupiedSlots }}</td><td class="num">{{ row.occupiedTeu }}</td><td class="num">{{ row.percentOccupied }}%</td></tr>
+          }
+        </tbody>
+        <tfoot>
+          <tr><th>Total</th><th class="num">{{ r.total.totalSlots }}</th><th class="num">{{ r.total.occupiedSlots }}</th><th class="num">{{ r.total.occupiedTeu }}</th><th class="num">{{ r.total.percentOccupied }}%</th></tr>
+        </tfoot>
+      </table>
+    </section>
+  }
+
+  @if (canDaily && daily(); as r) {
+    <section class="card">
+      <h2>Daily gate movements <span class="muted">({{ r.total.gateIns | number }} in, {{ r.total.gateOuts | number }} out)</span></h2>
+      <div class="table-wrap daily">
+        <table>
+          <thead><tr><th>Date</th><th class="num">In</th><th class="num">Out</th><th aria-hidden="true"></th></tr></thead>
+          <tbody>
+            @for (row of r.rows; track row.date) {
+              <tr>
+                <td class="nowrap">{{ formatDate(row.date) }}</td><td class="num">{{ row.gateIns | number }}</td><td class="num">{{ row.gateOuts | number }}</td>
+                <td class="bars" aria-hidden="true">
+                  <div class="bar in" [style.width.%]="barWidth(row.gateIns)"></div>
+                  <div class="bar out" [style.width.%]="barWidth(row.gateOuts)"></div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  }
+</div>

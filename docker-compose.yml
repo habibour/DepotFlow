@@ -28,7 +28,7 @@ services:
         condition: service_healthy
     environment:
       ASPNETCORE_ENVIRONMENT: Production
-      ConnectionStrings__Default: Server=db,1433;Database=DepotFlow;User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True
+      ConnectionStrings__Default: Server=db,1433;Database=${DEPOTFLOW_DB:-DepotFlow};User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True
       Jwt__Key: ${JWT_KEY}
       Seed__DefaultPassword: ${SEED_DEFAULT_PASSWORD}
       Seed__DemoTariffs: "true"            # demo tariffs for every shipping line, so the journey works at once
@@ -38,6 +38,14 @@ services:
       Logging__Console__FormatterOptions__IncludeScopes: "true"   # puts the trace id on every log line
     ports:
       - "5080:8080"
+
+  web:
+    build:
+      context: ./web
+    depends_on:
+      - api
+    ports:
+      - "8080:8080"   # the Angular app; nginx proxies /api to the api service
 
 volumes:
   depotflow-sql:

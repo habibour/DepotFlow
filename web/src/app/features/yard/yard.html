@@ -1,0 +1,72 @@
+<h1>Yard</h1>
+
+@if (error(); as e) {
+  <div class="alert error" role="alert">{{ e.message }}</div>
+}
+
+<div class="card">
+  <div class="row">
+    <div role="tablist" aria-label="Blocks" class="tabs">
+      @for (b of blocks(); track b.block) {
+        <button type="button" role="tab" [attr.aria-selected]="b.block === block()" [class.primary]="b.block === block()" (click)="selectBlock(b.block)">
+          Block {{ b.block }} <span class="pct">{{ b.percentOccupied }}%</span>
+        </button>
+      }
+    </div>
+    <span class="spacer"></span>
+    @if (summary(); as s) {
+      <span class="muted">{{ s.occupiedSlots }} of {{ s.totalSlots }} slots occupied, {{ s.occupiedTeu }} TEU</span>
+    }
+  </div>
+</div>
+
+<div class="grid-2 yard">
+  <section class="card" aria-label="Yard grid" [attr.aria-busy]="loading()">
+    <p class="muted legend">
+      Each cell is a stack of up to four containers (top tier at the top).
+      <span class="swatch occupied"></span> occupied <span class="swatch free"></span> free
+    </p>
+    <div class="table-wrap">
+      <table class="grid">
+        <thead>
+          <tr><th>Row</th>@for (bay of grid().bays; track bay) { <th>Bay {{ bay }}</th> }</tr>
+        </thead>
+        <tbody>
+          @for (r of grid().rows; track r.row) {
+            <tr>
+              <th scope="row">{{ r.row }}</th>
+              @for (stack of r.stacks; track $index) {
+                <td>
+                  @if (stack) {
+                    <div class="stack">
+                      @for (slot of stack.tiers; track slot.id) {
+                        <button type="button" class="tier" [class.occupied]="slot.occupant" [class.chosen]="selected()?.id === slot.id"
+                                [attr.aria-label]="slot.code + (slot.occupant ? ', ' + slot.occupant.containerNumber : ', free')"
+                                [title]="slot.code + (slot.occupant ? ' - ' + slot.occupant.containerNumber : ' - free')"
+                                (click)="select(slot)">{{ slot.occupant ? slot.occupant.sizeFeet : '' }}</button>
+                      }
+                    </div>
+                  }
+                </td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card" aria-label="Selected slot">
+    <h2>Slot details</h2>
+    @if (selected(); as slot) {
+      <dl class="facts">
+        <dt>Slot</dt><dd>{{ slot.code }}</dd>
+        <dt>Container</dt><dd>{{ slot.occupant?.containerNumber }}</dd>
+        <dt>Size</dt><dd>{{ slot.occupant?.sizeFeet }} ft</dd>
+        <dt>Visit</dt><dd>#{{ slot.occupant?.visitId }}</dd>
+      </dl>
+    } @else {
+      <p class="muted">Click an occupied slot to see its container.</p>
+    }
+  </section>
+</div>

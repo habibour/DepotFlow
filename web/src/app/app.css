@@ -1,0 +1,18 @@
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding: .6rem 1.25rem;
+  background: var(--header);
+  color: #e8eefc;
+}
+.brand { color: #fff; font-weight: 700; font-size: 1.1rem; text-decoration: none; }
+nav { display: flex; gap: .25rem; }
+nav a { color: #b9c6e4; text-decoration: none; padding: .35rem .7rem; border-radius: 6px; }
+nav a:hover { background: rgb(255 255 255 / 10%); }
+nav a.active { background: rgb(255 255 255 / 18%); color: #fff; }
+.spacer { flex: 1; }
+.who { font-size: .85rem; color: #b9c6e4; }
+.role { margin-left: .4rem; padding: .1rem .45rem; border-radius: 999px; background: rgb(255 255 255 / 14%); font-size: .72rem; }
+.signout { background: transparent; color: #e8eefc; border-color: rgb(255 255 255 / 30%); padding: .3rem .7rem; }
+@media (max-width: 720px) { .who { display: none; } }

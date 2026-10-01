@@ -1,0 +1,6 @@
+.daily { max-height: 28rem; overflow-y: auto; }
+.bars { width: 40%; }
+.bar { height: .45rem; border-radius: 3px; margin: 1px 0; }
+.bar.in { background: var(--primary); }
+.bar.out { background: var(--ok); }
+tfoot th { text-transform: none; font-size: .9rem; color: var(--text); }

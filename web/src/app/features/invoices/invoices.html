@@ -1,0 +1,93 @@
+<h1>Invoices</h1>
+
+@if (error(); as e) {
+  <div class="alert error" role="alert">{{ e.message }}</div>
+}
+
+<div class="grid-2 invoices">
+  <section class="card" aria-labelledby="list-title">
+    <div class="row">
+      <h2 id="list-title">All invoices</h2>
+      <span class="spacer"></span>
+      <div class="field">
+        <label for="status">Status</label>
+        <select id="status" [ngModel]="status()" (ngModelChange)="setStatus($event)">
+          <option value="">All</option>
+          <option value="Issued">Issued (unpaid)</option>
+          <option value="Paid">Paid</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="table-wrap" [attr.aria-busy]="busy()">
+      <table>
+        <thead>
+          <tr><th>Invoice</th><th>Container</th><th>Line</th><th>Issued</th><th class="num">Total</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          @for (invoice of result()?.items; track invoice.id) {
+            <tr class="clickable" [class.selected]="selected()?.id === invoice.id" tabindex="0"
+                (click)="open(invoice)" (keydown.enter)="open(invoice)">
+              <td class="nowrap">{{ invoice.invoiceNumber }}</td>
+              <td>{{ invoice.containerNumber }}</td>
+              <td>{{ invoice.shippingLineCode }}</td>
+              <td class="nowrap">{{ formatDateTime(invoice.issuedAtUtc) }}</td>
+              <td class="num">{{ formatMoney(invoice.total, invoice.currency) }}</td>
+              <td><span class="badge" [class.ok]="invoice.status === 'Paid'" [class.warn]="invoice.status === 'Issued'">{{ invoice.status }}</span></td>
+            </tr>
+          } @empty {
+            <tr><td colspan="6" class="muted">{{ busy() ? 'Loading...' : 'No invoices match.' }}</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div class="row pager">
+      <button type="button" (click)="goTo(page() - 1)" [disabled]="page() <= 1">Previous</button>
+      <span class="muted">Page {{ page() }} of {{ totalPages() }} ({{ result()?.totalCount ?? 0 }} invoices)</span>
+      <button type="button" (click)="goTo(page() + 1)" [disabled]="page() >= totalPages()">Next</button>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="detail-title">
+    @if (selected(); as invoice) {
+      <h2 id="detail-title">{{ invoice.invoiceNumber }}
+        <span class="badge" [class.ok]="invoice.status === 'Paid'" [class.warn]="invoice.status === 'Issued'">{{ invoice.status }}</span>
+      </h2>
+
+      <dl class="facts">
+        <dt>Container</dt><dd>{{ invoice.containerNumber }} ({{ invoice.sizeFeet }} ft, {{ invoice.shippingLineCode }})</dd>
+        <dt>Gate in</dt><dd>{{ formatDateTime(invoice.gateInAtUtc) }}</dd>
+        <dt>Gate out</dt><dd>{{ formatDateTime(invoice.gateOutAtUtc) }}</dd>
+        <dt>Days in yard</dt><dd>{{ invoice.dwellDays }} ({{ invoice.freeDays }} free, {{ invoice.strategyKey }} tariff)</dd>
+        @if (invoice.paidAtUtc) {
+          <dt>Paid</dt><dd>{{ formatDateTime(invoice.paidAtUtc) }}</dd>
+        }
+      </dl>
+
+      <table>
+        <thead><tr><th>Charge</th><th class="num">Days</th><th class="num">Rate</th><th class="num">Amount</th></tr></thead>
+        <tbody>
+          @for (line of invoice.lines; track line.description) {
+            <tr>
+              <td>{{ line.description }}</td>
+              <td class="num">{{ line.days }}</td>
+              <td class="num">{{ formatMoney(line.ratePerDay, invoice.currency) }}</td>
+              <td class="num">{{ formatMoney(line.amount, invoice.currency) }}</td>
+            </tr>
+          } @empty {
+            <tr><td colspan="4" class="muted">Within the free days: nothing to charge.</td></tr>
+          }
+        </tbody>
+        <tfoot><tr><th colspan="3">Total</th><th class="num">{{ formatMoney(invoice.total, invoice.currency) }}</th></tr></tfoot>
+      </table>
+
+      @if (invoice.status === 'Issued') {
+        <p><button type="button" class="primary" (click)="pay(invoice)" [disabled]="paying()">{{ paying() ? 'Recording payment...' : 'Mark as paid' }}</button></p>
+      }
+    } @else {
+      <h2 id="detail-title">Invoice</h2>
+      <p class="muted">Select an invoice to see its charges.</p>
+    }
+  </section>
+</div>

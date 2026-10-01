@@ -1,0 +1,19 @@
+<header class="topbar">
+  <a class="brand" routerLink="/">DepotFlow</a>
+
+  @if (auth.role(); as role) {
+    <nav aria-label="Main">
+      @for (link of links(); track link.path) {
+        <a [routerLink]="link.path" routerLinkActive="active">{{ link.label }}</a>
+      }
+    </nav>
+
+    <span class="spacer"></span>
+    <span class="who">{{ auth.email() }} <span class="role">{{ role }}</span></span>
+    <button type="button" class="signout" (click)="signOut()">Sign out</button>
+  }
+</header>
+
+<main class="page">
+  <router-outlet />
+</main>
