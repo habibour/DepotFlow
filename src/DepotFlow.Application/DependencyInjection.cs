@@ -3,6 +3,7 @@ using DepotFlow.Application.Billing;
 using DepotFlow.Application.Containers;
 using DepotFlow.Application.Gate;
 using DepotFlow.Application.Invoices;
+using DepotFlow.Application.Reports;
 using DepotFlow.Application.ShippingLines;
 using DepotFlow.Application.Tariffs;
 using DepotFlow.Application.Visits;
@@ -29,6 +30,11 @@ public static class DependencyInjection
         services.AddScoped<RelocateVisitUseCase>();
         services.AddScoped<GetContainerUseCase>();
         services.AddScoped<SearchContainersUseCase>();
+
+        services.AddScoped<DailyMovementsReportUseCase>();
+        services.AddScoped<YardOccupancyReportUseCase>();
+        services.AddScoped<DwellTimeReportUseCase>();
+        services.AddScoped<RevenueReportUseCase>();
 
         services.AddScoped<ListAuditLogsUseCase>();
 

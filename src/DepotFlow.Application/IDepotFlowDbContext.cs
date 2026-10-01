@@ -14,6 +14,12 @@ public interface IDepotFlowDbContext
     DbSet<Invoice> Invoices { get; }
     DbSet<AuditLog> AuditLogs { get; }
 
+    /// <summary>
+    /// Runs a raw SQL query (for example EXEC of a report procedure) and maps the columns onto <typeparamref name="T"/>.
+    /// Interpolated values become SQL parameters, never concatenated text.
+    /// </summary>
+    IQueryable<T> SqlQuery<T>(FormattableString sql);
+
     /// <summary>Forgets every tracked change. Call after a failed save, before retrying with fresh data.</summary>
     void ResetChanges();
 
