@@ -2,6 +2,7 @@ using DepotFlow.Application;
 using DepotFlow.Application.Auth;
 using DepotFlow.Infrastructure.Identity;
 using DepotFlow.Infrastructure.Persistence;
+using DepotFlow.Infrastructure.Persistence.Auditing;
 using DepotFlow.Infrastructure.Time;
 using DepotFlow.Infrastructure.Yard;
 using Microsoft.AspNetCore.Identity;
@@ -21,7 +22,9 @@ public static class DependencyInjection
             var connectionString = serviceProvider.GetRequiredService<IConfiguration>().GetConnectionString("Default")
                 ?? throw new InvalidOperationException("Connection string 'Default' is not configured.");
             options.UseSqlServer(connectionString);
+            options.AddInterceptors(serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>());
         });
+        services.AddScoped<AuditSaveChangesInterceptor>();   // scoped: one per DbContext, holds per-save state
         services.AddScoped<IDepotFlowDbContext>(sp => sp.GetRequiredService<DepotFlowDbContext>());
 
         services.AddIdentityCore<ApplicationUser>()

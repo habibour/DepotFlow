@@ -5,4 +5,9 @@ public interface ICurrentUser
 {
     /// <exception cref="InvalidOperationException">There is no signed-in user.</exception>
     string UserId { get; }
+
+    /// <summary>The signed-in user's id, or null outside a request (for example startup seeding).</summary>
+    string? UserIdOrNull { get; }
+
+    string? Email { get; }
 }

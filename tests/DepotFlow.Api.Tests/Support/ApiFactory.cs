@@ -119,6 +119,14 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         await db.SaveChangesAsync();
     }
 
+    /// <summary>Runs raw SQL against the test database (used to prove the audit table refuses updates and deletes).</summary>
+    public async Task ExecuteSqlAsync(string sql)
+    {
+        await using var scope = Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<DepotFlowDbContext>();
+        await db.Database.ExecuteSqlRawAsync(sql);
+    }
+
     /// <summary>Inserts an invoice for a visit directly, to set up "an invoice already exists" without going through gate-out.</summary>
     public async Task InsertInvoiceForVisitAsync(long visitId)
     {

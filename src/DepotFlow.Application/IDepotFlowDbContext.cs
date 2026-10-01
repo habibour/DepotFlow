@@ -12,6 +12,7 @@ public interface IDepotFlowDbContext
     DbSet<YardSlot> YardSlots { get; }
     DbSet<Tariff> Tariffs { get; }
     DbSet<Invoice> Invoices { get; }
+    DbSet<AuditLog> AuditLogs { get; }
 
     /// <summary>Forgets every tracked change. Call after a failed save, before retrying with fresh data.</summary>
     void ResetChanges();

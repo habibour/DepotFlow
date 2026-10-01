@@ -28,6 +28,7 @@ public partial class DepotFlowDbContext(DbContextOptions<DepotFlowDbContext> opt
     public DbSet<YardSlot> YardSlots => Set<YardSlot>();
     public DbSet<Tariff> Tariffs => Set<Tariff>();
     public DbSet<Invoice> Invoices => Set<Invoice>();
+    public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
