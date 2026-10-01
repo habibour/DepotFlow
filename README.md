@@ -3,15 +3,29 @@
 Container depot management system: gate in and gate out, yard slots, storage billing, reports.
 Built with ASP.NET Core (.NET 10), EF Core and SQL Server 2022.
 
-Status: Day 1 (foundation and gate operations) is done. Yard slots, billing and reports come next.
+Status: Days 1 and 2 are done (gate operations, yard, billing, invoices, audit log). Reports, performance work and the UI come next.
 
 ## What works today
 
 - JWT login with four roles: `Admin`, `GateClerk`, `YardPlanner`, `BillingOfficer`
-- Shipping lines: list, get, create, update
-- Container number validation (ISO 6346 check digit)
-- Gate in and gate out, with one active visit per container enforced by a database index, even under concurrent requests
-- Container lookup with visit history
+- Shipping lines, and container number validation (ISO 6346 check digit)
+- **Gate in**: needs an active tariff, then assigns the first free yard slot that obeys the stacking rule
+- **Yard**: slot listing with occupant, occupancy per block, relocation of a container to another slot
+- **Tariffs**: tiered or flat daily rates per shipping line and container size, with free days; a new tariff replaces the old one
+- **Gate out**: in one transaction it releases the visit, frees the slot and issues the invoice
+- **Invoices**: charge preview before leaving, invoice with lines, pay; amounts are copied onto the invoice so later tariff changes cannot alter it
+- **Audit log**: every insert, update and delete of the business data, with who and what changed; append-only
+- Search: visits (status, line, container prefix, dates, sort) and containers (prefix, size, in yard)
+- One active visit per container, and one active visit per slot, enforced by database indexes even under concurrent requests
+
+Who may call what is declared with `[Authorize(Roles = ...)]` on each controller action, and `AuthorizationMatrixTests` checks every endpoint against every role (and against a missing token).
+
+## Simplifications to know about
+
+- **Stacking rule**: a container can go on tier N above 1 only when the slot below it is occupied. This is checked when a container is placed or relocated. Removing a lower container while others sit on top is allowed; the system does not model re-handling moves.
+- **Dwell days** count calendar days in Asia/Dhaka time, counting both the gate-in day and the gate-out day (gate in 1 Oct 23:50, out 2 Oct 00:10 is 2 days).
+- **Invoice numbers** (`INV-2026-0000123`) come from a SQL sequence; the year part is the database server's UTC year.
+- **Tariffs** are never edited: to change prices, create a new tariff (the old one is deactivated). A tariff can only be switched off through `PUT /api/v1/tariffs/{id}`.
 
 ## Prerequisites
 
@@ -40,6 +54,8 @@ dotnet run --project src/DepotFlow.Api --launch-profile http
 Then open <http://localhost:5141/swagger>, call `POST /api/v1/auth/login`, and paste the returned `accessToken`
 into the Authorize button. `GET /health` returns 200.
 
+In Development the first start also seeds a demo tariff for every shipping line and both sizes (switch with `Seed:DemoTariffs`), and a 4 x 10 x 10 x 4 yard of 1,600 slots (`Yard` section).
+
 Seeded users (demo only, password `Demo#DepotFlow1`):
 
 | Email | Role |
@@ -65,6 +81,7 @@ curl -X POST localhost:5141/api/v1/visits/gate-in -H "Authorization: Bearer $TOK
 dotnet test
 ```
 
+147 tests: unit tests for the billing, stacking and container-number rules, and integration tests for every journey.
 The integration tests start their own SQL Server in a container (Testcontainers), so Docker must be running.
 They use a separate database and never touch the development one.
 
