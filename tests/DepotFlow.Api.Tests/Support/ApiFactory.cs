@@ -1,5 +1,6 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using DepotFlow.Application;
 using DepotFlow.Application.Auth;
 using DepotFlow.Application.Security;
 using DepotFlow.Domain.Billing;
@@ -7,10 +8,12 @@ using DepotFlow.Domain.Entities;
 using DepotFlow.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Testcontainers.MsSql;
 
 namespace DepotFlow.Api.Tests.Support;
@@ -34,6 +37,9 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         [Roles.BillingOfficer] = "billing@depotflow.local"
     };
 
+    /// <summary>The clock the whole app uses during tests; advance it to age containers without waiting.</summary>
+    public FakeClock Clock { get; } = new();
+
     private readonly MsSqlContainer _sql = new MsSqlBuilder(SqlImage).Build();
 
     public Task InitializeAsync() => _sql.StartAsync();
@@ -48,6 +54,12 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
     {
         builder.UseEnvironment("Development");   // Development applies migrations and seeds data at startup
 
+        builder.ConfigureTestServices(services =>
+        {
+            services.RemoveAll<IClock>();
+            services.AddSingleton<IClock>(Clock);
+        });
+
         var connection = new SqlConnectionStringBuilder(_sql.GetConnectionString()) { InitialCatalog = TestDatabase };
 
         // Added last, so these win over appsettings and the developer's user-secrets.
@@ -56,7 +68,14 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
             ["ConnectionStrings:Default"] = connection.ConnectionString,
             ["Jwt:Key"] = "integration-tests-signing-key-0123456789-abcdef",
             ["Seed:DefaultPassword"] = TestPassword,
-            ["Seed:DemoTariffs"] = "false"   // tests create the tariffs they need
+            ["Seed:DemoTariffs"] = "false",   // tests create the tariffs they need
+
+            // A tiny yard: 1 block x 1 row x 2 bays x 2 tiers = 4 slots, in the order
+            // A-01-01-1, A-01-01-2, A-01-02-1, A-01-02-2 (tier 2 needs tier 1 below it).
+            ["Yard:Blocks"] = "A",
+            ["Yard:Rows"] = "1",
+            ["Yard:Bays"] = "2",
+            ["Yard:Tiers"] = "2"
         }));
     }
 

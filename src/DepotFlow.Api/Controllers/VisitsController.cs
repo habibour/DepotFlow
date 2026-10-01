@@ -8,10 +8,10 @@ namespace DepotFlow.Api.Controllers;
 
 [ApiController]
 [Route("api/v1/visits")]
-[Authorize(Roles = $"{Roles.Admin},{Roles.GateClerk}")]
 public class VisitsController : ControllerBase
 {
     [HttpPost("gate-in")]
+    [Authorize(Roles = $"{Roles.Admin},{Roles.GateClerk}")]
     public async Task<IActionResult> GateIn(
         GateInRequest request, [FromServices] GateInUseCase useCase, CancellationToken cancellationToken) =>
         this.ToActionResult(
@@ -19,7 +19,14 @@ public class VisitsController : ControllerBase
             dto => Created($"/api/v1/visits/{dto.Id}", dto));
 
     [HttpPost("{id:long}/gate-out")]
+    [Authorize(Roles = $"{Roles.Admin},{Roles.GateClerk}")]
     public async Task<IActionResult> GateOut(
         long id, GateOutRequest request, [FromServices] GateOutUseCase useCase, CancellationToken cancellationToken) =>
+        this.ToActionResult(await useCase.ExecuteAsync(id, request, cancellationToken), Ok);
+
+    [HttpPost("{id:long}/relocate")]
+    [Authorize(Roles = $"{Roles.Admin},{Roles.YardPlanner}")]
+    public async Task<IActionResult> Relocate(
+        long id, RelocateRequest request, [FromServices] RelocateVisitUseCase useCase, CancellationToken cancellationToken) =>
         this.ToActionResult(await useCase.ExecuteAsync(id, request, cancellationToken), Ok);
 }

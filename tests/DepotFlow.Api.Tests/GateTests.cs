@@ -46,7 +46,7 @@ public class GateTests(ApiFactory factory) : ApiTestBase(factory)
         {
             containerNumber = TestData.NewContainerNumber(),
             sizeFeet = 20,
-            shippingLineId = 3,
+            shippingLineId = 1,
             truckNumber = "DHAKA-METRO-TA-11-2345",
             sealNumber = "SL889201",
             damageNotes = "Small dent on left panel"
@@ -148,6 +148,8 @@ public class GateTests(ApiFactory factory) : ApiTestBase(factory)
             Assert.Equal(
                 [HttpStatusCode.Created, HttpStatusCode.Conflict],
                 responses.Select(r => r.StatusCode).OrderBy(s => s));
+
+            await ReleaseWinnerAsync(client, responses);
         }
     }
 
@@ -172,6 +174,15 @@ public class GateTests(ApiFactory factory) : ApiTestBase(factory)
             Assert.All(
                 responses.Where(r => r.StatusCode == HttpStatusCode.Conflict),
                 r => Assert.Equal("container_already_in_yard", TestData.ProblemCodeAsync(r).Result));
+
+            await ReleaseWinnerAsync(client, responses);
         }
+    }
+
+    // The test yard has only 4 slots, so each round must leave it empty again.
+    private static async Task ReleaseWinnerAsync(HttpClient client, HttpResponseMessage[] responses)
+    {
+        var winner = await TestData.ReadAsync<VisitDto>(responses.Single(r => r.StatusCode == HttpStatusCode.Created));
+        Assert.Equal(HttpStatusCode.OK, (await client.PostAsJsonAsync(GateOut(winner.Id), TestData.GateOutBody())).StatusCode);
     }
 }

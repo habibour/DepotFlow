@@ -1,3 +1,4 @@
+using DepotFlow.Application.Common;
 using DepotFlow.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -33,6 +34,6 @@ public class TariffConfiguration : IEntityTypeConfiguration<Tariff>
         builder.HasIndex(x => new { x.ShippingLineId, x.SizeFeet })
             .IsUnique()
             .HasFilter("[IsActive] = 1")
-            .HasDatabaseName("UX_Tariffs_Line_Size_Active");
+            .HasDatabaseName(IndexNames.TariffLineSizeActive);
     }
 }

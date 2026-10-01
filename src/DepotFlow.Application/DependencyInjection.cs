@@ -22,6 +22,7 @@ public static class DependencyInjection
 
         services.AddScoped<GateInUseCase>();
         services.AddScoped<GateOutUseCase>();
+        services.AddScoped<RelocateVisitUseCase>();
         services.AddScoped<GetContainerUseCase>();
         services.AddScoped<SearchContainersUseCase>();
 

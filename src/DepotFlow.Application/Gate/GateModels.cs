@@ -14,12 +14,17 @@ public sealed record GateOutRequest(string? TruckNumber, string? DamageNotes);
 
 public sealed record ShippingLineSummary(int Id, string Code, string Name);
 
+public sealed record YardSlotSummary(int Id, string Code);
+
+public sealed record RelocateRequest(int? TargetSlotId);
+
 public sealed record VisitDto(
     long Id,
     int ContainerId,
     string ContainerNumber,
     int SizeFeet,
     ShippingLineSummary ShippingLine,
+    YardSlotSummary? YardSlot,
     VisitStatus Status,
     DateTime GateInAtUtc,
     DateTime? GateOutAtUtc,
@@ -30,13 +35,14 @@ public sealed record VisitDto(
 
 internal static class VisitMapping
 {
-    /// <summary>Expects <see cref="Visit.Container"/> and <see cref="Visit.ShippingLine"/> to be loaded.</summary>
+    /// <summary>Expects <see cref="Visit.Container"/>, <see cref="Visit.ShippingLine"/> and (if placed) <see cref="Visit.YardSlot"/> to be loaded.</summary>
     public static VisitDto ToDto(this Visit visit, int? dwellDays = null) => new(
         visit.Id,
         visit.ContainerId,
         visit.Container.Number,
         visit.Container.SizeFeet,
         new ShippingLineSummary(visit.ShippingLine.Id, visit.ShippingLine.Code, visit.ShippingLine.Name),
+        visit.YardSlot is null ? null : new YardSlotSummary(visit.YardSlot.Id, visit.YardSlot.Code),
         visit.Status,
         visit.GateInAtUtc,
         visit.GateOutAtUtc,

@@ -1,3 +1,4 @@
+using DepotFlow.Application.Common;
 using DepotFlow.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -37,13 +38,13 @@ public class VisitConfiguration : IEntityTypeConfiguration<Visit>
         builder.HasIndex(x => x.YardSlotId)
             .IsUnique()
             .HasFilter("[Status] = 1 AND [YardSlotId] IS NOT NULL")
-            .HasDatabaseName("UX_Visits_Slot_Active");
+            .HasDatabaseName(IndexNames.VisitSlotActive);
 
         // At most one active (InYard = 1) visit per container, even under concurrent requests.
         builder.HasIndex(x => x.ContainerId)
             .IsUnique()
             .HasFilter("[Status] = 1")
-            .HasDatabaseName("UX_Visits_Container_Active");
+            .HasDatabaseName(IndexNames.VisitContainerActive);
 
         // Visit history lookup: newest first for one container.
         builder.HasIndex(x => new { x.ContainerId, x.GateInAtUtc })

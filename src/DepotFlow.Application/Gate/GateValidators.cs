@@ -23,3 +23,11 @@ public sealed class GateOutRequestValidator : AbstractValidator<GateOutRequest>
         RuleFor(x => x.DamageNotes).MaximumLength(GateLimits.DamageNotes);
     }
 }
+
+public sealed class RelocateRequestValidator : AbstractValidator<RelocateRequest>
+{
+    public RelocateRequestValidator()
+    {
+        RuleFor(x => x.TargetSlotId).NotNull().GreaterThan(0);
+    }
+}
