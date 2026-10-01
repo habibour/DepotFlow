@@ -36,6 +36,26 @@ public class GateTests(ApiFactory factory) : ApiTestBase(factory)
         Assert.Single(found.Items);
     }
 
+    // The spec's own example truck number is 22 characters; it must be accepted.
+    [Fact]
+    public async Task S1_T_GATE_1_spec_example_truck_number_is_accepted()
+    {
+        var client = await Factory.CreateClientAsync(Roles.GateClerk);
+
+        var response = await client.PostAsJsonAsync(GateIn, new
+        {
+            containerNumber = TestData.NewContainerNumber(),
+            sizeFeet = 20,
+            shippingLineId = 3,
+            truckNumber = "DHAKA-METRO-TA-11-2345",
+            sealNumber = "SL889201",
+            damageNotes = "Small dent on left panel"
+        });
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        Assert.Equal("DHAKA-METRO-TA-11-2345", (await TestData.ReadAsync<VisitDto>(response)).TruckInNumber);
+    }
+
     [Fact]
     public async Task S1_T_GATE_2_invalid_check_digit_is_422()
     {

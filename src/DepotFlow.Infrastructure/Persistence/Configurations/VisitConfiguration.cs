@@ -15,8 +15,8 @@ public class VisitConfiguration : IEntityTypeConfiguration<Visit>
         builder.Property(x => x.Status).HasColumnType("tinyint");
         builder.Property(x => x.GateInAtUtc).HasColumnType("datetime2");
         builder.Property(x => x.GateOutAtUtc).HasColumnType("datetime2");
-        builder.Property(x => x.TruckInNumber).HasMaxLength(20).IsRequired();
-        builder.Property(x => x.TruckOutNumber).HasMaxLength(20);
+        builder.Property(x => x.TruckInNumber).HasMaxLength(30).IsRequired();
+        builder.Property(x => x.TruckOutNumber).HasMaxLength(30);
         builder.Property(x => x.SealNumber).HasMaxLength(30).IsRequired();
         builder.Property(x => x.DamageNotesIn).HasMaxLength(500);
         builder.Property(x => x.DamageNotesOut).HasMaxLength(500);
