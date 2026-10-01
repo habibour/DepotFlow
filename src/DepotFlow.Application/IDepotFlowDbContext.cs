@@ -20,6 +20,9 @@ public interface IDepotFlowDbContext
     /// </summary>
     IQueryable<T> SqlQuery<T>(FormattableString sql);
 
+    /// <summary>True when the database can be reached. Used by the health check.</summary>
+    Task<bool> CanConnectAsync(CancellationToken cancellationToken);
+
     /// <summary>Forgets every tracked change. Call after a failed save, before retrying with fresh data.</summary>
     void ResetChanges();
 

@@ -11,6 +11,33 @@ services:
       - "1433:1433"
     volumes:
       - depotflow-sql:/var/opt/mssql
+    healthcheck:
+      # A trivial query: the container counts as healthy only once SQL Server really answers.
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -Q 'SELECT 1' -b -o /dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+  api:
+    build:
+      context: .
+      dockerfile: src/DepotFlow.Api/Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__Default: Server=db,1433;Database=DepotFlow;User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True
+      Jwt__Key: ${JWT_KEY}
+      Seed__DefaultPassword: ${SEED_DEFAULT_PASSWORD}
+      Seed__DemoTariffs: "true"            # demo tariffs for every shipping line, so the journey works at once
+      Database__MigrateOnStartup: "true"   # apply migrations and seed users and the yard when the API starts
+      Swagger__Enabled: "true"             # Swagger UI at /swagger on the API port
+      Logging__Console__FormatterName: json
+      Logging__Console__FormatterOptions__IncludeScopes: "true"   # puts the trace id on every log line
+    ports:
+      - "5080:8080"
 
 volumes:
   depotflow-sql:

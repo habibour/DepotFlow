@@ -50,6 +50,8 @@ public partial class DepotFlowDbContext(DbContextOptions<DepotFlowDbContext> opt
 
     public void ResetChanges() => ChangeTracker.Clear();
 
+    public Task<bool> CanConnectAsync(CancellationToken cancellationToken) => Database.CanConnectAsync(cancellationToken);
+
     public IQueryable<T> SqlQuery<T>(FormattableString sql) => Database.SqlQuery<T>(sql);
 
     public async Task<ITransactionScope> BeginTransactionAsync(CancellationToken cancellationToken) =>
