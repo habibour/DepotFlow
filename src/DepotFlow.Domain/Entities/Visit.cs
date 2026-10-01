@@ -38,9 +38,22 @@ public class Visit
     public string SealNumber { get; private set; } = null!;
     public string? DamageNotesIn { get; private set; }
     public string? DamageNotesOut { get; private set; }
-    public int? YardSlotId { get; private set; }   // reserved for Day 2
+    public int? YardSlotId { get; private set; }
+    public YardSlot? YardSlot { get; private set; }
     public string CreatedByUserId { get; private set; } = null!;
     public string? ClosedByUserId { get; private set; }
+
+    /// <summary>Puts the container in <paramref name="slot"/> (first placement or a relocation).</summary>
+    public void AssignSlot(YardSlot slot)
+    {
+        if (Status != VisitStatus.InYard)
+        {
+            throw new DomainException("Only a visit that is in the yard can be placed in a slot.");
+        }
+
+        YardSlot = slot;
+        YardSlotId = slot.Id;
+    }
 
     public void GateOut(DateTime gateOutAtUtc, string truckOutNumber, string? damageNotesOut, string closedByUserId)
     {
@@ -55,6 +68,8 @@ public class Visit
         }
 
         Status = VisitStatus.Released;
+        YardSlot = null;      // the slot is free again
+        YardSlotId = null;
         GateOutAtUtc = gateOutAtUtc;
         TruckOutNumber = truckOutNumber;
         DamageNotesOut = damageNotesOut;

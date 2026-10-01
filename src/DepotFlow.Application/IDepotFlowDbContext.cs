@@ -9,6 +9,7 @@ public interface IDepotFlowDbContext
     DbSet<ShippingLine> ShippingLines { get; }
     DbSet<Container> Containers { get; }
     DbSet<Visit> Visits { get; }
+    DbSet<YardSlot> YardSlots { get; }
 
     /// <exception cref="Common.UniqueConstraintViolationException">A unique index rejected the write.</exception>
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);

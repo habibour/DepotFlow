@@ -28,6 +28,17 @@ public class VisitConfiguration : IEntityTypeConfiguration<Visit>
             .HasForeignKey(x => x.ShippingLineId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        builder.HasOne(x => x.YardSlot)
+            .WithMany()
+            .HasForeignKey(x => x.YardSlotId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // At most one active visit may sit in a slot, even under concurrent requests.
+        builder.HasIndex(x => x.YardSlotId)
+            .IsUnique()
+            .HasFilter("[Status] = 1 AND [YardSlotId] IS NOT NULL")
+            .HasDatabaseName("UX_Visits_Slot_Active");
+
         // At most one active (InYard = 1) visit per container, even under concurrent requests.
         builder.HasIndex(x => x.ContainerId)
             .IsUnique()

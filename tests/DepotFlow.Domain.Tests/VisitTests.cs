@@ -53,4 +53,28 @@ public class VisitTests
 
         Assert.Throws<DomainException>(() => new Container(number!, 30, GateIn));
     }
+
+    // Covers spec S2-02 and S2-10 (slot is set on placement and freed on gate-out).
+    [Fact]
+    public void Assigning_a_slot_records_it_and_gate_out_frees_it()
+    {
+        var visit = NewVisit();
+
+        visit.AssignSlot(new YardSlot("A", 1, 1, 1));
+        Assert.NotNull(visit.YardSlot);
+
+        visit.GateOut(GateIn.AddHours(5), "TRUCK-2", null, "user-2");
+
+        Assert.Null(visit.YardSlot);
+        Assert.Null(visit.YardSlotId);
+    }
+
+    [Fact]
+    public void A_released_visit_cannot_take_a_slot()
+    {
+        var visit = NewVisit();
+        visit.GateOut(GateIn.AddHours(5), "TRUCK-2", null, "user-2");
+
+        Assert.Throws<DomainException>(() => visit.AssignSlot(new YardSlot("A", 1, 1, 1)));
+    }
 }

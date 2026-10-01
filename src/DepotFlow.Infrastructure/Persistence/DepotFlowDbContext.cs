@@ -19,6 +19,7 @@ public class DepotFlowDbContext(DbContextOptions<DepotFlowDbContext> options)
     public DbSet<ShippingLine> ShippingLines => Set<ShippingLine>();
     public DbSet<Container> Containers => Set<Container>();
     public DbSet<Visit> Visits => Set<Visit>();
+    public DbSet<YardSlot> YardSlots => Set<YardSlot>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

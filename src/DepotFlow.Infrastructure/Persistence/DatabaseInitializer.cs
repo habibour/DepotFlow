@@ -1,10 +1,12 @@
 using DepotFlow.Application.Security;
 using DepotFlow.Domain.Entities;
 using DepotFlow.Infrastructure.Identity;
+using DepotFlow.Infrastructure.Yard;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace DepotFlow.Infrastructure.Persistence;
 
@@ -39,6 +41,24 @@ public static class DatabaseInitializer
         await db.Database.MigrateAsync(cancellationToken);
         await SeedShippingLinesAsync(db, cancellationToken);
         await SeedIdentityAsync(scope.ServiceProvider);
+        await SeedYardSlotsAsync(db, scope.ServiceProvider.GetRequiredService<IOptions<YardOptions>>().Value, cancellationToken);
+    }
+
+    private static async Task SeedYardSlotsAsync(DepotFlowDbContext db, YardOptions yard, CancellationToken cancellationToken)
+    {
+        if (await db.YardSlots.AnyAsync(cancellationToken))
+        {
+            return;
+        }
+
+        var slots = from block in yard.Blocks
+                    from row in Enumerable.Range(1, yard.Rows)
+                    from bay in Enumerable.Range(1, yard.Bays)
+                    from tier in Enumerable.Range(1, yard.Tiers)
+                    select new YardSlot(block.ToString(), row, bay, tier);
+
+        db.YardSlots.AddRange(slots);
+        await db.SaveChangesAsync(cancellationToken);
     }
 
     private static async Task SeedIdentityAsync(IServiceProvider services)

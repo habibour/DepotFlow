@@ -3,6 +3,7 @@ using DepotFlow.Application.Auth;
 using DepotFlow.Infrastructure.Identity;
 using DepotFlow.Infrastructure.Persistence;
 using DepotFlow.Infrastructure.Time;
+using DepotFlow.Infrastructure.Yard;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -30,6 +31,15 @@ public static class DependencyInjection
         services.AddOptions<JwtOptions>()
             .Bind(configuration.GetSection(JwtOptions.SectionName))
             .Validate(o => o.Key.Length >= 32, "Jwt:Key must be at least 32 characters.")
+            .ValidateOnStart();
+
+        services.AddOptions<YardOptions>()
+            .Bind(configuration.GetSection(YardOptions.SectionName))
+            .Validate(o => o.Blocks.Length > 0 && o.Blocks.Distinct().Count() == o.Blocks.Length
+                           && o.Blocks.All(char.IsAsciiLetterUpper),
+                "Yard:Blocks must be distinct upper-case letters.")
+            .Validate(o => o.Rows is >= 1 and <= 99 && o.Bays is >= 1 and <= 99 && o.Tiers is >= 1 and <= 9,
+                "Yard:Rows/Bays must be 1-99 and Yard:Tiers 1-9.")
             .ValidateOnStart();
 
         services.AddSingleton<IClock, SystemClock>();
