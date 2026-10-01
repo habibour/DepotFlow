@@ -50,6 +50,13 @@ public class VisitConfiguration : IEntityTypeConfiguration<Visit>
         builder.HasIndex(x => new { x.Status, x.GateInAtUtc }).HasDatabaseName("IX_Visits_Status_GateIn");
         builder.HasIndex(x => new { x.ShippingLineId, x.GateInAtUtc }).HasDatabaseName("IX_Visits_ShippingLine_GateIn");
 
+        // Supports the dwell-time and gate-out counts: released visits by gate-out time, carrying the columns those
+        // reports read, so a range query never touches the table. Filtered, so it only holds the released rows.
+        builder.HasIndex(x => x.GateOutAtUtc)
+            .IncludeProperties(x => new { x.GateInAtUtc, x.ShippingLineId })
+            .HasFilter("[Status] = 2")
+            .HasDatabaseName("IX_Visits_Released_GateOut_Covering");
+
         // Visit history lookup: newest first for one container.
         builder.HasIndex(x => new { x.ContainerId, x.GateInAtUtc })
             .IsDescending(false, true)
