@@ -31,10 +31,10 @@ internal static class Program
         try
         {
             var options = SeederOptions.Parse(args);
-            var connectionString = ResolveConnectionString(options, out var devDatabase);
+            var connectionString = ResolveConnectionString(options);
             return options.Bench
                 ? await Benchmark.RunAsync(connectionString, options.AsOf, options.Only, Log)
-                : await SeedAsync(options, connectionString, devDatabase);
+                : await SeedAsync(options, connectionString);
         }
         catch (Exception ex) when (ex is ArgumentException or InvalidOperationException)
         {
@@ -43,7 +43,7 @@ internal static class Program
         }
     }
 
-    private static string ResolveConnectionString(SeederOptions options, out string devDatabase)
+    private static string ResolveConnectionString(SeederOptions options)
     {
         var config = new ConfigurationBuilder()
             .AddUserSecrets(ApiUserSecretsId)
@@ -55,31 +55,24 @@ internal static class Program
                 "No connection string found. Set ConnectionStrings__Default, pass --connection, or configure the API's user-secrets.");
 
         var builder = new SqlConnectionStringBuilder(raw);
-        devDatabase = builder.InitialCatalog;
 
         // Safety: never touch anything that is not on this machine.
-        var host = builder.DataSource.Split(',')[0].Replace("tcp:", "", StringComparison.OrdinalIgnoreCase).Trim();
-        if (host is not ("localhost" or "127.0.0.1" or "."))
-        {
-            throw new InvalidOperationException($"The seeder only runs against a local SQL Server, not '{host}'.");
-        }
+        ResetGuard.RequireLocalHost(builder.DataSource);
 
         builder.InitialCatalog = options.Database;
         builder.TrustServerCertificate = true;
         return builder.ConnectionString;
     }
 
-    private static async Task<int> SeedAsync(SeederOptions options, string connectionString, string devDatabase)
+    private static async Task<int> SeedAsync(SeederOptions options, string connectionString)
     {
         var database = new SqlConnectionStringBuilder(connectionString).InitialCatalog;
         Log($"Seeding database '{database}' with {options.Visits:N0} visits (seed {options.Seed}, as of {options.AsOf:yyyy-MM-dd}){(options.Reset ? ", resetting first" : "")}");
 
         // --reset drops the whole database, so it is only allowed on a dedicated benchmark database.
-        if (options.Reset && (!database.Contains("Bench", StringComparison.OrdinalIgnoreCase)
-                              || database.Equals(devDatabase, StringComparison.OrdinalIgnoreCase)))
+        if (options.Reset)
         {
-            throw new InvalidOperationException(
-                $"--reset drops the database. Refusing: '{database}' must contain 'Bench' and must not be your development database ('{devDatabase}').");
+            ResetGuard.RequireBenchDatabase(database);
         }
 
         var config = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
