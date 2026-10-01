@@ -47,6 +47,12 @@ public class InvoiceConfiguration : IEntityTypeConfiguration<Invoice>
             .HasForeignKey(x => x.InvoiceId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        // Supports the revenue report: a range seek on the issue time that already holds every column the report reads,
+        // so it never touches the (wide) clustered rows. Measured in docs/benchmarks.md.
+        builder.HasIndex(x => x.IssuedAtUtc)
+            .IncludeProperties(x => new { x.ShippingLineId, x.Total, x.Status })
+            .HasDatabaseName("IX_Invoices_IssuedAt_Covering");
+
         // One invoice per visit. This also stops two simultaneous gate-outs from both succeeding.
         builder.HasIndex(x => x.VisitId).IsUnique().HasDatabaseName(IndexNames.InvoiceVisit);
     }
