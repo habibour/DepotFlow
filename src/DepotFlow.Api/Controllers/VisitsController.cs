@@ -1,7 +1,10 @@
 using DepotFlow.Api.ErrorHandling;
 using DepotFlow.Application.Billing;
 using DepotFlow.Application.Gate;
+using DepotFlow.Application.Common;
 using DepotFlow.Application.Security;
+using DepotFlow.Application.Visits;
+using DepotFlow.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,6 +14,20 @@ namespace DepotFlow.Api.Controllers;
 [Route("api/v1/visits")]
 public class VisitsController : ControllerBase
 {
+    // Any authenticated user may read visits (the default-deny policy already requires sign-in).
+    [HttpGet]
+    public async Task<ActionResult<PagedResult<VisitListItemDto>>> List(
+        [FromQuery] VisitStatus? status, [FromQuery] int? shippingLineId, [FromQuery] string? containerNumber,
+        [FromQuery] DateTime? gateInFrom, [FromQuery] DateTime? gateInTo, [FromQuery] string? sort,
+        [FromQuery] int? page, [FromQuery] int? pageSize,
+        [FromServices] ListVisitsUseCase useCase, CancellationToken cancellationToken) =>
+        Ok(await useCase.ExecuteAsync(status, shippingLineId, containerNumber, gateInFrom, gateInTo, sort, page, pageSize, cancellationToken));
+
+    [HttpGet("{id:long}")]
+    public async Task<IActionResult> Get(
+        long id, [FromServices] GetVisitUseCase useCase, CancellationToken cancellationToken) =>
+        this.ToActionResult(await useCase.ExecuteAsync(id, cancellationToken), Ok);
+
     [HttpPost("gate-in")]
     [Authorize(Roles = $"{Roles.Admin},{Roles.GateClerk}")]
     public async Task<IActionResult> GateIn(

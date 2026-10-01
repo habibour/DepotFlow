@@ -5,6 +5,7 @@ using DepotFlow.Application.Gate;
 using DepotFlow.Application.Invoices;
 using DepotFlow.Application.ShippingLines;
 using DepotFlow.Application.Tariffs;
+using DepotFlow.Application.Visits;
 using DepotFlow.Application.Yard;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
@@ -41,6 +42,9 @@ public static class DependencyInjection
         services.AddScoped<ListTariffsUseCase>();
         services.AddScoped<CreateTariffUseCase>();
         services.AddScoped<DeactivateTariffUseCase>();
+
+        services.AddScoped<ListVisitsUseCase>();
+        services.AddScoped<GetVisitUseCase>();
 
         services.AddScoped<ListYardSlotsUseCase>();
         services.AddScoped<GetYardOccupancyUseCase>();

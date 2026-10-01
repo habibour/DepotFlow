@@ -46,6 +46,10 @@ public class VisitConfiguration : IEntityTypeConfiguration<Visit>
             .HasFilter("[Status] = 1")
             .HasDatabaseName(IndexNames.VisitContainerActive);
 
+        // Support the visit list filters: by status, and by shipping line, each ordered by gate-in time.
+        builder.HasIndex(x => new { x.Status, x.GateInAtUtc }).HasDatabaseName("IX_Visits_Status_GateIn");
+        builder.HasIndex(x => new { x.ShippingLineId, x.GateInAtUtc }).HasDatabaseName("IX_Visits_ShippingLine_GateIn");
+
         // Visit history lookup: newest first for one container.
         builder.HasIndex(x => new { x.ContainerId, x.GateInAtUtc })
             .IsDescending(false, true)

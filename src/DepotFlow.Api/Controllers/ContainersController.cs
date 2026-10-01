@@ -17,7 +17,7 @@ public class ContainersController : ControllerBase
 
     [HttpGet]
     public async Task<ActionResult<PagedResult<ContainerListItemDto>>> Search(
-        [FromQuery] string? number, [FromQuery] int? page, [FromQuery] int? pageSize,
+        [FromQuery] string? number, [FromQuery] int? sizeFeet, [FromQuery] bool? inYard, [FromQuery] int? page, [FromQuery] int? pageSize,
         [FromServices] SearchContainersUseCase useCase, CancellationToken cancellationToken) =>
-        Ok(await useCase.ExecuteAsync(number, page, pageSize, cancellationToken));
+        Ok(await useCase.ExecuteAsync(number, sizeFeet, inYard, page, pageSize, cancellationToken));
 }
