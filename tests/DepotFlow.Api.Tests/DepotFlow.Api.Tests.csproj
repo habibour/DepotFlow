@@ -22,6 +22,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\DepotFlow.Api\DepotFlow.Api.csproj" />
+    <ProjectReference Include="..\..\src\DepotFlow.Seeder\DepotFlow.Seeder.csproj" />
   </ItemGroup>
 
 </Project>

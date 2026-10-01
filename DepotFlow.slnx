@@ -4,6 +4,7 @@
     <Project Path="src/DepotFlow.Application/DepotFlow.Application.csproj" />
     <Project Path="src/DepotFlow.Domain/DepotFlow.Domain.csproj" />
     <Project Path="src/DepotFlow.Infrastructure/DepotFlow.Infrastructure.csproj" />
+    <Project Path="src/DepotFlow.Seeder/DepotFlow.Seeder.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/DepotFlow.Api.Tests/DepotFlow.Api.Tests.csproj" />
