@@ -40,6 +40,11 @@ public static class DatabaseInitializer
 
         await db.Database.MigrateAsync(cancellationToken);
         await SeedShippingLinesAsync(db, cancellationToken);
+        if (scope.ServiceProvider.GetRequiredService<IConfiguration>().GetValue<bool>(DemoTariffSeeder.SettingName))
+        {
+            await DemoTariffSeeder.SeedAsync(db, cancellationToken);
+        }
+
         await SeedIdentityAsync(scope.ServiceProvider);
         await SeedYardSlotsAsync(db, scope.ServiceProvider.GetRequiredService<IOptions<YardOptions>>().Value, cancellationToken);
     }

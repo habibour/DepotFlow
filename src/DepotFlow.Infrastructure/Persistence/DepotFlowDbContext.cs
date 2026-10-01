@@ -20,6 +20,7 @@ public class DepotFlowDbContext(DbContextOptions<DepotFlowDbContext> options)
     public DbSet<Container> Containers => Set<Container>();
     public DbSet<Visit> Visits => Set<Visit>();
     public DbSet<YardSlot> YardSlots => Set<YardSlot>();
+    public DbSet<Tariff> Tariffs => Set<Tariff>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -36,6 +37,9 @@ public class DepotFlowDbContext(DbContextOptions<DepotFlowDbContext> options)
         configurationBuilder.Properties<DateTime>().HaveConversion<UtcDateTimeConverter>();
         configurationBuilder.Properties<DateTime?>().HaveConversion<NullableUtcDateTimeConverter>();
     }
+
+    public async Task<ITransactionScope> BeginTransactionAsync(CancellationToken cancellationToken) =>
+        new EfTransactionScope(await Database.BeginTransactionAsync(cancellationToken));
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {

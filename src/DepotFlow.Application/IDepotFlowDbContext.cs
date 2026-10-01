@@ -10,6 +10,10 @@ public interface IDepotFlowDbContext
     DbSet<Container> Containers { get; }
     DbSet<Visit> Visits { get; }
     DbSet<YardSlot> YardSlots { get; }
+    DbSet<Tariff> Tariffs { get; }
+
+    /// <summary>Starts a transaction so several saves commit or roll back together.</summary>
+    Task<ITransactionScope> BeginTransactionAsync(CancellationToken cancellationToken);
 
     /// <exception cref="Common.UniqueConstraintViolationException">A unique index rejected the write.</exception>
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);

@@ -2,6 +2,8 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using DepotFlow.Application.Auth;
 using DepotFlow.Application.Security;
+using DepotFlow.Domain.Billing;
+using DepotFlow.Domain.Entities;
 using DepotFlow.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -53,11 +55,12 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         {
             ["ConnectionStrings:Default"] = connection.ConnectionString,
             ["Jwt:Key"] = "integration-tests-signing-key-0123456789-abcdef",
-            ["Seed:DefaultPassword"] = TestPassword
+            ["Seed:DefaultPassword"] = TestPassword,
+            ["Seed:DemoTariffs"] = "false"   // tests create the tariffs they need
         }));
     }
 
-    /// <summary>Removes visits and containers. Shipping lines and users stay, since they are seeded once at startup.</summary>
+    /// <summary>Removes visits, containers and tariffs. Shipping lines, users and yard slots stay: they are seeded once at startup.</summary>
     public async Task ResetAsync()
     {
         await using var scope = Services.CreateAsyncScope();
@@ -71,6 +74,29 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 
         await db.Visits.ExecuteDeleteAsync();
         await db.Containers.ExecuteDeleteAsync();
+        await db.Tariffs.ExecuteDeleteAsync();   // tiers go with them (cascade)
+    }
+
+    /// <summary>
+    /// Inserts the standard tiered tariff (free 4 days; days 5-10 at 200; day 11 on at 400 for 20 ft, double for 40 ft)
+    /// directly into the database, for tests that need a tariff to exist but are not about tariffs.
+    /// </summary>
+    public async Task SeedStandardTariffsAsync(params int[] shippingLineIds)
+    {
+        await using var scope = Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<DepotFlowDbContext>();
+
+        foreach (var lineId in shippingLineIds)
+        {
+            foreach (var size in new[] { 20, 40 })
+            {
+                var rate = size == 20 ? 200m : 400m;
+                db.Tariffs.Add(new Tariff(lineId, size, StrategyKeys.Tiered, 4,
+                    [new TariffTier(5, 10, rate), new TariffTier(11, null, rate * 2)], DateTime.UtcNow));
+            }
+        }
+
+        await db.SaveChangesAsync();
     }
 
     /// <summary>An HttpClient already signed in as the seeded user for <paramref name="role"/>.</summary>

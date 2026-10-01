@@ -31,6 +31,19 @@ public static class TestData
         damageNotes = (string?)null
     };
 
+    /// <summary>Free 4 days; days 5-10 at 200; day 11 onwards at 400.</summary>
+    public static object TieredTariffBody(int sizeFeet = 20) => new
+    {
+        sizeFeet,
+        strategyKey = "Tiered",
+        freeDays = 4,
+        tiers = new object[]
+        {
+            new { fromDay = 5, toDay = (int?)10, ratePerDay = 200.00m },
+            new { fromDay = 11, toDay = (int?)null, ratePerDay = 400.00m }
+        }
+    };
+
     public static object GateOutBody() => new { truckNumber = "DHK-TA-11-9999", damageNotes = (string?)null };
 
     /// <summary>The machine-readable "code" field of a problem response.</summary>
