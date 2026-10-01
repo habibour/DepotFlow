@@ -5,9 +5,10 @@ namespace DepotFlow.Seeder;
 /// <summary>
 /// Command line: --visits N (default 1,500,000)  --seed N (default 42)  --reset  --bench
 ///               --database NAME (default DepotFlowBench)  --connection "..."  --as-of yyyy-MM-dd (default today, UTC)
+///               --only TEXT (bench only the reports whose name contains TEXT, for quick iteration)
 /// </summary>
 internal sealed record SeederOptions(
-    int Visits, int Seed, bool Reset, bool Bench, string Database, string? Connection, DateOnly AsOf)
+    int Visits, int Seed, bool Reset, bool Bench, string Database, string? Connection, DateOnly AsOf, string? Only = null)
 {
     public const string DefaultDatabase = "DepotFlowBench";
 
@@ -20,6 +21,7 @@ internal sealed record SeederOptions(
         var database = DefaultDatabase;
         string? connection = null;
         var asOf = DateOnly.FromDateTime(DateTime.UtcNow);
+        string? only = null;
 
         for (var i = 0; i < args.Length; i++)
         {
@@ -33,6 +35,7 @@ internal sealed record SeederOptions(
                 case "--bench": bench = true; break;
                 case "--database": database = Next(); break;
                 case "--connection": connection = Next(); break;
+                case "--only": only = Next(); break;
                 case "--as-of": asOf = DateOnly.ParseExact(Next(), "yyyy-MM-dd", CultureInfo.InvariantCulture); break;
                 default: throw new ArgumentException($"Unknown option '{args[i]}'.");
             }
@@ -43,6 +46,6 @@ internal sealed record SeederOptions(
             throw new ArgumentException("--visits must be at least 100.");
         }
 
-        return new SeederOptions(visits, seed, reset, bench, database, connection, asOf);
+        return new SeederOptions(visits, seed, reset, bench, database, connection, asOf, only);
     }
 }

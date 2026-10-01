@@ -33,7 +33,7 @@ internal static class Program
             var options = SeederOptions.Parse(args);
             var connectionString = ResolveConnectionString(options, out var devDatabase);
             return options.Bench
-                ? await Benchmark.RunAsync(connectionString, Log)
+                ? await Benchmark.RunAsync(connectionString, options.AsOf, options.Only, Log)
                 : await SeedAsync(options, connectionString, devDatabase);
         }
         catch (Exception ex) when (ex is ArgumentException or InvalidOperationException)
