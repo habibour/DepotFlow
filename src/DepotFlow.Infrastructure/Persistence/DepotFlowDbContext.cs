@@ -2,6 +2,7 @@ using DepotFlow.Application;
 using DepotFlow.Application.Common;
 using DepotFlow.Domain.Entities;
 using DepotFlow.Infrastructure.Identity;
+using DepotFlow.Infrastructure.Persistence.Configurations;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using System.Text.RegularExpressions;
 using Microsoft.Data.SqlClient;
@@ -26,10 +27,13 @@ public partial class DepotFlowDbContext(DbContextOptions<DepotFlowDbContext> opt
     public DbSet<Visit> Visits => Set<Visit>();
     public DbSet<YardSlot> YardSlots => Set<YardSlot>();
     public DbSet<Tariff> Tariffs => Set<Tariff>();
+    public DbSet<Invoice> Invoices => Set<Invoice>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);   // Identity tables
+
+        modelBuilder.HasSequence<long>(InvoiceConfiguration.NumberSequence);   // invoice numbers
 
         // Picks up every IEntityTypeConfiguration<T> class in this assembly.
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(DepotFlowDbContext).Assembly);

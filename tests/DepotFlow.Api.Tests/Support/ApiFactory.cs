@@ -79,7 +79,7 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         }));
     }
 
-    /// <summary>Removes visits, containers and tariffs. Shipping lines, users and yard slots stay: they are seeded once at startup.</summary>
+    /// <summary>Removes invoices, visits, containers and tariffs. Shipping lines, users and yard slots stay: they are seeded once at startup.</summary>
     public async Task ResetAsync()
     {
         await using var scope = Services.CreateAsyncScope();
@@ -91,6 +91,7 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
             throw new InvalidOperationException("Refusing to reset: the tests are not connected to the test database.");
         }
 
+        await db.Invoices.ExecuteDeleteAsync();   // lines go with them (cascade); invoices point at visits
         await db.Visits.ExecuteDeleteAsync();
         await db.Containers.ExecuteDeleteAsync();
         await db.Tariffs.ExecuteDeleteAsync();   // tiers go with them (cascade)
@@ -115,6 +116,18 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
             }
         }
 
+        await db.SaveChangesAsync();
+    }
+
+    /// <summary>Inserts an invoice for a visit directly, to set up "an invoice already exists" without going through gate-out.</summary>
+    public async Task InsertInvoiceForVisitAsync(long visitId)
+    {
+        await using var scope = Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<DepotFlowDbContext>();
+        var visit = await db.Visits.Include(v => v.Container).SingleAsync(v => v.Id == visitId);
+
+        var tariff = new TariffSnapshot(StrategyKeys.Flat, 0, "BDT", [new TariffTierSnapshot(1, null, 100m)]);
+        db.Invoices.Add(Invoice.Issue(visit, tariff, 1, new FlatStrategy().Calculate(tariff, 1), DateTime.UtcNow));
         await db.SaveChangesAsync();
     }
 

@@ -18,6 +18,8 @@ public sealed record YardSlotSummary(int Id, string Code);
 
 public sealed record RelocateRequest(int? TargetSlotId);
 
+public sealed record InvoiceSummaryDto(long Id, string InvoiceNumber, decimal Total, string Currency, InvoiceStatus Status);
+
 public sealed record VisitDto(
     long Id,
     int ContainerId,
@@ -31,12 +33,13 @@ public sealed record VisitDto(
     string TruckInNumber,
     string? TruckOutNumber,
     string SealNumber,
-    int? DwellDays);
+    int? DwellDays,
+    InvoiceSummaryDto? Invoice);
 
 internal static class VisitMapping
 {
     /// <summary>Expects <see cref="Visit.Container"/>, <see cref="Visit.ShippingLine"/> and (if placed) <see cref="Visit.YardSlot"/> to be loaded.</summary>
-    public static VisitDto ToDto(this Visit visit, int? dwellDays = null) => new(
+    public static VisitDto ToDto(this Visit visit, int? dwellDays = null, Invoice? invoice = null) => new(
         visit.Id,
         visit.ContainerId,
         visit.Container.Number,
@@ -49,5 +52,6 @@ internal static class VisitMapping
         visit.TruckInNumber,
         visit.TruckOutNumber,
         visit.SealNumber,
-        dwellDays);
+        dwellDays,
+        invoice is null ? null : new InvoiceSummaryDto(invoice.Id, invoice.InvoiceNumber, invoice.Total, invoice.Currency, invoice.Status));
 }

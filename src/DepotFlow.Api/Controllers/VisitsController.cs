@@ -1,4 +1,5 @@
 using DepotFlow.Api.ErrorHandling;
+using DepotFlow.Application.Billing;
 using DepotFlow.Application.Gate;
 using DepotFlow.Application.Security;
 using Microsoft.AspNetCore.Authorization;
@@ -29,4 +30,10 @@ public class VisitsController : ControllerBase
     public async Task<IActionResult> Relocate(
         long id, RelocateRequest request, [FromServices] RelocateVisitUseCase useCase, CancellationToken cancellationToken) =>
         this.ToActionResult(await useCase.ExecuteAsync(id, request, cancellationToken), Ok);
+
+    [HttpGet("{id:long}/charge-preview")]
+    [Authorize(Roles = $"{Roles.Admin},{Roles.BillingOfficer}")]
+    public async Task<IActionResult> ChargePreview(
+        long id, [FromServices] ChargePreviewUseCase useCase, CancellationToken cancellationToken) =>
+        this.ToActionResult(await useCase.ExecuteAsync(id, cancellationToken), Ok);
 }

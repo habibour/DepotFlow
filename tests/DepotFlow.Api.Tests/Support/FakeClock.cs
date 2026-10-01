@@ -15,5 +15,17 @@ public sealed class FakeClock : IClock
 
     public void Advance(TimeSpan by) => Interlocked.Add(ref _offsetTicks, by.Ticks);
 
+    /// <summary>
+    /// Jumps to 12:00 Dhaka time, <paramref name="days"/> calendar days after the clock's current Dhaka date.
+    /// Midday keeps day counts stable whatever time the test runs. Calling it with 0 moves to midday today.
+    /// </summary>
+    public void AdvanceToDhakaMidday(int days)
+    {
+        var zone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Dhaka");
+        var localNow = TimeZoneInfo.ConvertTimeFromUtc(UtcNow, zone);
+        var target = new DateTime(localNow.Year, localNow.Month, localNow.Day, 12, 0, 0, DateTimeKind.Unspecified).AddDays(days);
+        Interlocked.Exchange(ref _offsetTicks, (TimeZoneInfo.ConvertTimeToUtc(target, zone) - DateTime.UtcNow).Ticks);
+    }
+
     public void Reset() => Interlocked.Exchange(ref _offsetTicks, 0);
 }

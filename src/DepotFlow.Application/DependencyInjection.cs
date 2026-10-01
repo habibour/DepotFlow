@@ -1,5 +1,7 @@
+using DepotFlow.Application.Billing;
 using DepotFlow.Application.Containers;
 using DepotFlow.Application.Gate;
+using DepotFlow.Application.Invoices;
 using DepotFlow.Application.ShippingLines;
 using DepotFlow.Application.Tariffs;
 using DepotFlow.Application.Yard;
@@ -25,6 +27,13 @@ public static class DependencyInjection
         services.AddScoped<RelocateVisitUseCase>();
         services.AddScoped<GetContainerUseCase>();
         services.AddScoped<SearchContainersUseCase>();
+
+        services.AddScoped<ChargeCalculator>();
+        services.AddScoped<ChargePreviewUseCase>();
+
+        services.AddScoped<ListInvoicesUseCase>();
+        services.AddScoped<GetInvoiceUseCase>();
+        services.AddScoped<PayInvoiceUseCase>();
 
         services.AddScoped<ListTariffsUseCase>();
         services.AddScoped<CreateTariffUseCase>();
